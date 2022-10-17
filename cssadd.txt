@@ -1,0 +1,9 @@
+line-29 starts 
+paths added 
+ "styles": [
+              "./node_modules/bootstrap/dist/css/bootstrap.css",
+              "src/styles.css"
+            ],
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.min.js"
+            ]

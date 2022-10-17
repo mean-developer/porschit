@@ -1,101 +1,671 @@
-import { Component, OnInit} from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import {
+  Component,
+  Inject,
+  ElementRef,
+  ViewChild,
+  NgZone,
+  OnInit
+} from '@angular/core';
+// import { } from "google.maps"
+import { FormControl } from '@angular/forms';
+import * as turf from '@turf/turf';
+import * as geolib from 'geolib';
+import { MapsAPILoader } from '@agm/core/lib/services';
+
+// import { ApiService ,Maps} from 'src/app/api.service';
+// // import * as geolib from 'geolib'
 
 
+// // import geolib from 'geolib';
+// // import { getDistance } from 'geolib';
+
+// // import {  } from '/node_modules/'
+// // const colors = [
+// //   'red',
+// //   'blue',
+// //   'green',
+// //   'yellow',
+// //   'brown',
+// //   'BurlyWood',
+// //   'Cyan',
+// //   'DarkGreen',
+// //   'DarkOrchid',
+// //   'DarkOliveGreen',
+// //   'Fuchsia',
+// //   'GoldenRod',
+// //   'Indigo',
+// //   'LightCoral',
+// //   'MediumSlateBlue',
+// // ];
+// // let colorIndex = 0;
+
+// // const place:any = null as unknown as google.maps.places.PlaceResult;
+// // type Components = typeof place.address_components;
+// let place = null as unknown as google.maps.places.PlaceResult;
+// type Components = typeof place.address_components;
+// const colors = [
+//   'red',
+//   'blue',
+//   'green',
+//   'yellow',
+//   'brown',
+//   'BurlyWood',
+//   'Cyan',
+//   'DarkGreen',
+//   'DarkOrchid',
+//   'DarkOliveGreen',
+//   'Fuchsia',
+//   'GoldenRod',
+//   'Indigo',
+//   'LightCoral',
+//   'MediumSlateBlue',
+// ];
+//  let colorIndex = 0;
 @Component({
   selector: 'app-creator',
   templateUrl: './creator.component.html',
-  styleUrls: ['./creator.component.css']
+  styleUrls: ['./creator.component.css'],
 })
 export class CreatorComponent implements OnInit {
-  constructor(private _http: HttpClient) { }
-  ngOnInit(): void {
-    this.test();
+@ViewChild('search') searchElementRef:any = ElementRef;
+zoom:any;
+latitude:any;
+longitude:any;
+latlongs:any;
+latlong:any;
+searchControl:any = FormControl;
+
+constructor(private mapsApiLoader:MapsAPILoader,private ngZone:NgZone){
+
+}
+  ngOnInit() {
+this.zoom = 8;
+this.latitude = 39.8282;
+this.latitude = -98.5795;
+this.searchControl = new FormControl();
+this.mapsApiLoader.load().then(()=>{
+  const autocomplete = new google.maps.places.Autocomplete(this.searchElementRef.nativeElement,{
+    types:[],
+    componentRestrictions:{'country':'IN'}
+  });
+  autocomplete.addListener('place_changed',()=>{
+this.ngZone.run(()=>{
+  const place:google.maps.places.PlaceResult = autocomplete.getPlace();
+  if(place.geometry === undefined || place.geometry === null){
+    return;
   }
-  test(){
-    var url1 = "https://www.google.com/s?tbm=map&gs_ri=maps&suggest=p&authuser=0&hl=en&gl=in&pb=!2i5!3m5!1m1!1s17.4343648%2C+78.3955874!1m1!1sMadhu%2C+Telangana!2i1!4m9!1m3!1d12568.989119285241!2d78.3731223!3d17.4414422!2m0!3m2!1i1366!2i317!4f13.1!7i20!10b1!12m10!1m1!18b1!2m3!5m1!6e2!20e3!10b1!16b1!20m1!1e6!19m4!2m3!1i360!2i120!4i8!20m57!2m2!1i203!2i100!3m2!2i4!5b1!6m6!1m2!1i86!2i86!1m2!1i408!2i240!7m42!1m3!1e1!2b0!3e3!1m3!1e2!2b1!3e2!1m3!1e2!2b0!3e3!1m3!1e8!2b0!3e3!1m3!1e10!2b0!3e3!1m3!1e10!2b1!3e2!1m3!1e9!2b1!3e2!1m3!1e10!2b0!3e3!1m3!1e10!2b1!3e2!1m3!1e10!2b0!3e4!2b1!4b1!9b0!22m3!1sxElJY8T6GtKRseMPzsKggAI!3b1!7e81!24m70!1m22!13m8!2b1!3b1!4b1!6i1!8b1!9b1!14b1!20b1!18m12!3b1!4b1!5b1!6b1!9b1!12b1!13b1!14b1!15b1!17b1!20b1!21b1!2b1!5m5!2b1!3b1!5b1!6b1!7b1!10m1!8e3!14m1!3b1!17b1!20m2!1e3!1e6!24b1!25b1!26b1!29b1!30m1!2b1!36b1!39m3!2m2!2i1!3i1!43b1!52b1!54m1!1b1!55b1!56m2!1b1!3b1!65m5!3m4!1m3!1m2!1i224!2i298!71b1!72m4!1m2!3b1!5b1!4b1!89b1!26m4!2m3!1i80!2i92!4i8!34m18!2b1!3b1!4b1!6b1!8m6!1b1!3b1!4b1!5b1!6b1!7b1!9b1!12b1!14b1!20b1!23b1!25b1!26b1!37m1!1e81!47m0!49m5!3b1!6m1!1b1!7m1!1e3!67m2!7b1!10b1!69i622&q=Madhu%2C%20Telangana&pf=t&tch=1&ech=1&psi=xElJY8T6GtKRseMPzsKggAI.1665747399326.1"
-  var url2=  "https://www.google.com/maps/search/?api=1&query=centurylink+field"  ;
-  console.log("url2",url2)
-  this._http.get(url2).subscribe((data) => {
-    console.log(data)
-      });
-    }
-  keyword = 'name';
-  // public countries = [
-  //   {
-  //     id: 1,
-  //     name: 'Albania',
-  //   },
-  //   {
-  //     id: 2,
-  //     name: 'Belgium',
-  //   },
-  //   {
-  //     id: 3,
-  //     name: 'Denmark',
-  //   },
-  //   {
-  //     id: 4,
-  //     name: 'Montenegro',
-  //   },
-  //   {
-  //     id: 5,
-  //     name: 'Turkey',
-  //   },
-  //   {
-  //     id: 6,
-  //     name: 'Ukraine',
-  //   },
-  //   {
-  //     id: 7,
-  //     name: 'Macedonia',
-  //   },
-  //   {
-  //     id: 8,
-  //     name: 'Slovenia',
-  //   },
-  //   {
-  //     id: 9,
-  //     name: 'Georgia',
-  //   },
-  //   {
-  //     id: 10,
-  //     name: 'India',
-  //   },
-  //   {
-  //     id: 11,
-  //     name: 'Russia',
-  //   },
-  //   {
-  //     id: 12,
-  //     name: 'Switzerland',
-  //   }
-  // ];
+  const latlong ={
+    latitude:place.geometry.location.lat(),
+    longitude:place.geometry.location.lng(),
+  };
+  this.latlongs(latlong);
+  this.searchControl.reset();
+});
+  });
+});
+  }
+//  map:any= google.maps.Map
+
+//   constructor(apiService: ApiService, private ngZone: NgZone,) {
+//     apiService.api.then((maps) => {
+//       this.initAutocomplete(maps);
+//       this.initMap(maps);
+//     });
+//   }
+//   // searchElementRef:any
+
+//   // constructor() { }
+//   @ViewChild('search')
+//   searchElementRef:any= ElementRef;
+//   // public searchElementRef: ElementRef;
+
+//   @ViewChild('map')
+//    mapElementRef:any= ElementRef;
+
+//   public entries:any = [];
+
+//    place:any= google.maps.places.PlacesService;
+
+//   public locationFields = [
+//     'name',
+//     'cityName',
+//     'stateCode',
+//     'countryName',
+//     'countryCode',
+//   ];
+
   
-  countries:any;
-  selectEvent(item:any) {
-      console.log("item",item)
-    // do something with selected item
-  }
 
-  onChangeSearch(search: string) {
-    console.log("search",search)
-   var url =  "https://www.google.com/maps/search/?api=1&"+search;
-   var url1 = "https://www.google.com/s?tbm=map&gs_ri=maps&suggest=p&authuser=0&hl=en&gl=in&pb=!2i5!3m5!1m1!1s17.4343648%2C+78.3955874!1m1!1sMadhu%2C+Telangana!2i1!4m9!1m3!1d12568.989119285241!2d78.3731223!3d17.4414422!2m0!3m2!1i1366!2i317!4f13.1!7i20!10b1!12m10!1m1!18b1!2m3!5m1!6e2!20e3!10b1!16b1!20m1!1e6!19m4!2m3!1i360!2i120!4i8!20m57!2m2!1i203!2i100!3m2!2i4!5b1!6m6!1m2!1i86!2i86!1m2!1i408!2i240!7m42!1m3!1e1!2b0!3e3!1m3!1e2!2b1!3e2!1m3!1e2!2b0!3e3!1m3!1e8!2b0!3e3!1m3!1e10!2b0!3e3!1m3!1e10!2b1!3e2!1m3!1e9!2b1!3e2!1m3!1e10!2b0!3e3!1m3!1e10!2b1!3e2!1m3!1e10!2b0!3e4!2b1!4b1!9b0!22m3!1sxElJY8T6GtKRseMPzsKggAI!3b1!7e81!24m70!1m22!13m8!2b1!3b1!4b1!6i1!8b1!9b1!14b1!20b1!18m12!3b1!4b1!5b1!6b1!9b1!12b1!13b1!14b1!15b1!17b1!20b1!21b1!2b1!5m5!2b1!3b1!5b1!6b1!7b1!10m1!8e3!14m1!3b1!17b1!20m2!1e3!1e6!24b1!25b1!26b1!29b1!30m1!2b1!36b1!39m3!2m2!2i1!3i1!43b1!52b1!54m1!1b1!55b1!56m2!1b1!3b1!65m5!3m4!1m3!1m2!1i224!2i298!71b1!72m4!1m2!3b1!5b1!4b1!89b1!26m4!2m3!1i80!2i92!4i8!34m18!2b1!3b1!4b1!6b1!8m6!1b1!3b1!4b1!5b1!6b1!7b1!9b1!12b1!14b1!20b1!23b1!25b1!26b1!37m1!1e81!47m0!49m5!3b1!6m1!1b1!7m1!1e3!67m2!7b1!10b1!69i622&q=Madhu%2C%20Telangana&pf=t&tch=1&ech=1&psi=xElJY8T6GtKRseMPzsKggAI.1665747399326.1"
-   console.log(url)
-    this._http.get(url1).subscribe((data) => {
-  console.log(data)
-    });
-    // this._http doGetRequest(url) {    
-    //   return this._http.get<any>(url); 
-    // } 
-    // fetch remote data from here
-    // And reassign the 'data' which is binded to 'data' property.
-  }
+ 
+//   initAutocomplete(maps: Maps) {
+//     let autocomplete = new maps.places.Autocomplete(
+//       this.searchElementRef.nativeElement
+//     );
+//     autocomplete.addListener('place_changed', () => {
+//       this.ngZone.run(() => {
+//         this.onPlaceChange(autocomplete.getPlace());
+//       });
+//     });
+//   }
 
-  onFocused(e:any) {
-    console.log("e",e)
-    // do something
+//   initMap(maps: Maps) {
+//     this.map = new maps.Map(this.mapElementRef.nativeElement, {
+//       zoom: 7,
+//     });
+//     this.map.addListener('click', (event:any) => {
+//       const ellipsePoints = toEllipse(this.entries[0].location.bounds);
+//       var line = turf.helpers.lineString(
+//         ellipsePoints.map((p) => [p.longitude, p.latitude])
+//       );
+
+//       const pointLatLng = event.latLng as google.maps.LatLng;
+//       var point = turf.helpers.point([pointLatLng.lng(), pointLatLng.lat()]);
+//       //point = turf.helpers.point([this.entries[0].location.coordinates.longitude, this.entries[0].location.coordinates.latitude]);
+//       const isInside = geolib.isPointInside(
+//         { latitude: pointLatLng.lat(), longitude: pointLatLng.lng() },
+//         ellipsePoints
+//       );
+//       const distance = isInside ? 0 : turf.pointToLineDistance(point, line);
+//       console.log('distance', distance * 1000);
+//     });
+//   }
+
+//   onPlaceChange(place:any= google.maps.places.PlacesService) {
+//     this.map.setCenter(place.geometry.location);
+
+//     const color = colors[colorIndex++ % colors.length];
+//     const pin = this.pin(color);
+
+//     const marker = new google.maps.Marker({
+//       position: place.geometry.location,
+//       animation: google.maps.Animation.DROP,
+//       map: this.map,
+//       icon: this.pin(color),
+//     });
+
+//     const rectangle = new google.maps.Rectangle({
+//       strokeColor: color,
+//       strokeOpacity: 0.8,
+//       strokeWeight: 2,
+//       fillColor: color,
+//       fillOpacity: 0.35,
+//       map: this.map,
+//       bounds: place.geometry.viewport,
+//     });
+
+//     const expandedRectangle = new google.maps.Rectangle({
+//       strokeColor: color,
+//       strokeOpacity: 0.8,
+//       strokeWeight: 0.5,
+//       fillColor: color,
+//       fillOpacity: 0.2,
+//       map: this.map,
+//       bounds: expandBounds(place.geometry.viewport.toJSON(), 5000),
+//     });
+
+//     const location:any = this.locationFromPlace(place)||null;
+
+//     const ellipse = new google.maps.Polygon({
+//       paths: toEllipse(location.bounds).map(
+//         ({ latitude, longitude }) => new google.maps.LatLng(latitude, longitude)
+//       ),
+//       strokeColor: color,
+//       strokeOpacity: 1,
+//       strokeWeight: 1,
+//       fillColor: color,
+//       fillOpacity: 0.3,
+//     });
+//     ellipse.setMap(this.map);
+
+//     this.entries.unshift({
+//       place,
+//       marker,
+//       rectangle,
+//       expandedRectangle,
+//       ellipse,
+//       color,
+//       location,
+//     });
+//   }
+
+//   remove(entry:any) {
+//     entry.marker.setMap(null);
+//     entry.rectangle.setMap(null);
+//     entry.expandedRectangle.setMap(null);
+//     entry.ellipse.setMap(null);
+//     this.entries = this.entries.filter((e:any) => e !== entry);
+//   }
+
+//   pin(color:any) {
+//     return {
+//       path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z M -2,-30 a 2,2 0 1,1 4,0 2,2 0 1,1 -4,0',
+//       fillColor: color,
+//       fillOpacity: 1,
+//       strokeColor: '#000',
+//       strokeWeight: 2,
+//       scale: 1,
+//     };
+//   }
+
+//   public locationFromPlace(place: google.maps.places.PlaceResult) {
+//     const components = place.address_components;
+//     if (components === undefined) {
+//       return null;
+//     }
+
+//     const areaLevel3 = getShort(components, 'administrative_area_level_3');
+//     const locality = getLong(components, 'locality');
+
+//     const cityName = locality || areaLevel3;
+//     const countryName = getLong(components, 'country');
+//     const countryCode = getShort(components, 'country');
+//     const stateCode = getShort(components, 'administrative_area_level_1');
+//     const name = place.name !== cityName ? place.name : null;
+
+//     const coordinates = {
+//       // place:place.geometry?.location.lat(),
+//       latitude: place.geometry?.location.lat(),
+//       longitude: place.geometry?.location.lng(),
+//     };
+
+//     const bounds = place.geometry?.viewport.toJSON();
+
+//     // placeId is in place.place_id, if needed
+//     return {
+//       name,
+//       cityName,
+//       countryName,
+//       countryCode,
+//       stateCode,
+//       bounds,
+//       coordinates,
+//     };
+//   }
+// }
+
+// function getComponent(components: Components, name: string) {
+//   return components?.filter((component:any) => component.types[0] === name)[0];
+// }
+
+// function getLong(components: Components, name: string) {
+//   const component = getComponent(components, name);
+//   return component && component.long_name;
+// }
+
+// function getShort(components: Components, name: string) {
+//   const component = getComponent(components, name);
+//   return component && component.short_name;
+// }
+
+// function toEllipse({ north, south, east, west }: cosmos.LatLngBoundsLiteral) {
+//   const latitude = (north + south) / 2;
+//   const longitude = (east + west) / 2;
+//   const r1 =
+//     geolib.getDistance(
+//       { latitude: north, longitude },
+//       { latitude: south, longitude }
+//     ) / 2;
+//   const r2 =
+//     geolib.getDistance(
+//       { latitude, longitude: west },
+//       { latitude, longitude: east }
+//     ) / 2;
+
+//   const center = { latitude, longitude };
+//   const latitudeConv =
+//     geolib.getDistance(center, { latitude: latitude + 0.1, longitude }) * 10;
+//   const longitudeCong =
+//     geolib.getDistance(center, { latitude, longitude: longitude + 0.1 }) * 10;
+
+//   const points: cosmos.Coordinates[] = [];
+//   const FULL = Math.PI * 2;
+//   for (let i = 0; i <= FULL + 0.0001; i += FULL / 8) {
+//     points.push({
+//       latitude: latitude + (r1 * Math.cos(i)) / latitudeConv,
+//       longitude: longitude + (r2 * Math.sin(i)) / longitudeCong,
+//     });
+//   }
+//   return points;
+// }
+
+// function expandBounds(bounds: cosmos.LatLngBoundsLiteral, meters: number) {
+//   const SQRT_2 = 1.4142135623730951;
+//   const { longitude: west, latitude: north } = geolib.computeDestinationPoint(
+//     {
+//       latitude: bounds.north,
+//       longitude: bounds.west,
+//     },
+//     SQRT_2 * meters,
+//     315
+//   );
+//   const { longitude: east, latitude: south } = geolib.computeDestinationPoint(
+//     {
+//       latitude: bounds.south,
+//       longitude: bounds.east,
+//     },
+//     SQRT_2 * meters,
+//     135
+//   );
+//   return { west, north, east, south };
+// }
+
+// namespace cosmos {
+//   export interface Coordinates {
+//     /**
+//      * Coordinates latitude.
+//      * @type {number}
+//      */
+//     latitude: number;
+//     /**
+//      * Coordinates longitude.
+//      * @type {number}
+//      */
+//     longitude: number;
+//   }
+//   export interface LatLngBoundsLiteral {
+//     /**
+//      * LatLngBoundsLiteral east.
+//      * @type {number}
+//      */
+//     east: number;
+//     /**
+//      * LatLngBoundsLiteral north.
+//      * @type {number}
+//      */
+//     north: number;
+//     /**
+//      * LatLngBoundsLiteral south.
+//      * @type {number}
+//      */
+//     south: number;
+//     /**
+//      * LatLngBoundsLiteral west.
+//      * @type {number}
+//      */
+//     west: number;
+//   }
+
+
+
+//   @ViewChild('search')
+//    searchElementRef:any= ElementRef;
+
+//   @ViewChild('map')
+//   public mapElementRef:any= ElementRef;
+
+//   entries:any = [];
+
+//   place:any= google.maps.places.PlacesService;
+
+//   public locationFields = [
+//     'name',
+//     'cityName',
+//     'stateCode',
+//     'countryName',
+//     'countryCode',
+//   ];
+
+//   map:any= google.maps.Map;
+
+//   constructor(apiService: ApiService, private ngZone: NgZone) {
+//     apiService.api.then((maps) => {
+//       this.initAutocomplete(maps);
+//       this.initMap(maps);
+//     });
+//   }
+
+//   initAutocomplete(maps: Maps) {
+//     let autocomplete = new maps.places.Autocomplete(
+//       this.searchElementRef.nativeElement
+//     );
+//     autocomplete.addListener('place_changed', () => {
+//       this.ngZone.run(() => {
+//         this.onPlaceChange(autocomplete.getPlace());
+//       });
+//     });
+//   }
+
+//   initMap(maps: Maps) {
+//     this.map = new maps.Map(this.mapElementRef.nativeElement, {
+//       zoom: 7,
+//     });
+//     this.map.addListener('click', (event:any) => {
+//       const ellipsePoints = toEllipse(this.entries[0]['location']['bounds']);
+//       var line = turf.helpers.lineString(
+//         ellipsePoints.map((p) => [p.longitude, p.latitude])
+//       );
+
+//       const pointLatLng = event.latLng as google.maps.LatLng;
+//       var point = turf.helpers.point([pointLatLng.lng(), pointLatLng.lat()]);
+//       //point = turf.helpers.point([this.entries[0].location.coordinates.longitude, this.entries[0].location.coordinates.latitude]);
+//       const isInside = geolib.isPointInside(
+//         { latitude: pointLatLng.lat(), longitude: pointLatLng.lng() },
+//         ellipsePoints
+//       );
+//       const distance = isInside ? 0 : turf.pointToLineDistance(point, line);
+//       console.log('distance', distance * 1000);
+//     });
+//   }
+
+//   onPlaceChange(place:any= google.maps.places.PlacesService) {
+//         this.map.setCenter(place.geometry.location);
+    
+//         const color = colors[colorIndex++ % colors.length];
+//         const pin = this.pin(color);
+    
+//         const marker = new google.maps.Marker({
+//           position: place.geometry.location,
+//           animation: google.maps.Animation.DROP,
+//           map: this.map,
+//           icon: this.pin(color),
+//         });
+    
+//         const rectangle = new google.maps.Rectangle({
+//           strokeColor: color,
+//           strokeOpacity: 0.8,
+//           strokeWeight: 2,
+//           fillColor: color,
+//           fillOpacity: 0.35,
+//           map: this.map,
+//           bounds: place.geometry.viewport,
+//         });
+    
+//         const expandedRectangle = new google.maps.Rectangle({
+//           strokeColor: color,
+//           strokeOpacity: 0.8,
+//           strokeWeight: 0.5,
+//           fillColor: color,
+//           fillOpacity: 0.2,
+//           map: this.map,
+//           bounds: expandBounds(place.geometry.viewport.toJSON(), 5000),
+//         });
+    
+//         const location:any = this.locationFromPlace(place)||null;
+    
+//         const ellipse = new google.maps.Polygon({
+//           paths: toEllipse(location.bounds).map(
+//             ({ latitude, longitude }) => new google.maps.LatLng(latitude, longitude)
+//           ),
+//           strokeColor: color,
+//           strokeOpacity: 1,
+//           strokeWeight: 1,
+//           fillColor: color,
+//           fillOpacity: 0.3,
+//         });
+//         ellipse.setMap(this.map);
+    
+//         this.entries.unshift({
+//           place,
+//           marker,
+//           rectangle,
+//           expandedRectangle,
+//           ellipse,
+//           color,
+//           location,
+//         });
+//       }
+//   remove(entry:any) {
+//     entry.marker.setMap(null);
+//     entry.rectangle.setMap(null);
+//     entry.expandedRectangle.setMap(null);
+//     entry.ellipse.setMap(null);
+//     this.entries = this.entries.filter((e:any) => e !== entry);
+//   }
+
+//   pin(color:any) {
+//     return {
+//       path: 'M 0,0 C -2,-20 -10,-22 -10,-30 A 10,10 0 1,1 10,-30 C 10,-22 2,-20 0,0 z M -2,-30 a 2,2 0 1,1 4,0 2,2 0 1,1 -4,0',
+//       fillColor: color,
+//       fillOpacity: 1,
+//       strokeColor: '#000',
+//       strokeWeight: 2,
+//       scale: 1,
+//     };
+//   }
+
+//   public locationFromPlace(place: google.maps.places.PlaceResult) {
+//     const components = place.address_components;
+//     if (components === undefined) {
+//       return null;
+//     }
+
+//     const areaLevel3 = getShort(components, 'administrative_area_level_3');
+//     const locality = getLong(components, 'locality');
+
+//     const cityName = locality || areaLevel3;
+//     const countryName = getLong(components, 'country');
+//     const countryCode = getShort(components, 'country');
+//     const stateCode = getShort(components, 'administrative_area_level_1');
+//     const name = place.name !== cityName ? place.name : null;
+
+//     const coordinates = {
+//       latitude: this.place.geometry.location.lat(),
+//       longitude: this.place.geometry.location.lng(),
+//     };
+
+//     const bounds = this.place.geometry.viewport.toJSON();
+
+//     // placeId is in place.place_id, if needed
+//     return {
+//       name,
+//       cityName,
+//       countryName,
+//       countryCode,
+//       stateCode,
+//       bounds,
+//       coordinates,
+//     };
+//   }
+// }
+
+// function getComponent(components: Components, name: string) {
+//   return components?.filter((component) => component.types[0] === name)[0];
+// }
+
+// function getLong(components: Components, name: string) {
+//   const component = getComponent(components, name);
+//   return component && component.long_name;
+// }
+
+// function getShort(components: Components, name: string) {
+//   const component = getComponent(components, name);
+//   return component && component.short_name;
+// }
+
+// function toEllipse({ north, south, east, west }: cosmos.LatLngBoundsLiteral) {
+//   const latitude = (north + south) / 2;
+//   const longitude = (east + west) / 2;
+//   const r1 =
+//     geolib.getDistance(
+//       { latitude: north, longitude },
+//       { latitude: south, longitude }
+//     ) / 2;
+//   const r2 =
+//     geolib.getDistance(
+//       { latitude, longitude: west },
+//       { latitude, longitude: east }
+//     ) / 2;
+
+//   const center = { latitude, longitude };
+//   const latitudeConv =
+//     geolib.getDistance(center, { latitude: latitude + 0.1, longitude }) * 10;
+//   const longitudeCong =
+//     geolib.getDistance(center, { latitude, longitude: longitude + 0.1 }) * 10;
+
+//   const points: cosmos.Coordinates[] = [];
+//   const FULL = Math.PI * 2;
+//   for (let i = 0; i <= FULL + 0.0001; i += FULL / 8) {
+//     points.push({
+//       latitude: latitude + (r1 * Math.cos(i)) / latitudeConv,
+//       longitude: longitude + (r2 * Math.sin(i)) / longitudeCong,
+//     });
+//   }
+//   return points;
+// }
+
+// function expandBounds(bounds: cosmos.LatLngBoundsLiteral, meters: number) {
+//   const SQRT_2 = 1.4142135623730951;
+//   const { longitude: west, latitude: north } = geolib.computeDestinationPoint(
+//     {
+//       latitude: bounds.north,
+//       longitude: bounds.west,
+//     },
+//     SQRT_2 * meters,
+//     315
+//   );
+//   const { longitude: east, latitude: south } = geolib.computeDestinationPoint(
+//     {
+//       latitude: bounds.south,
+//       longitude: bounds.east,
+//     },
+//     SQRT_2 * meters,
+//     135
+//   );
+//   return { west, north, east, south };
+// }
+
+// namespace cosmos {
+//   export interface Coordinates {
+//     /**
+//      * Coordinates latitude.
+//      * @type {number}
+//      */
+//     latitude: number;
+//     /**
+//      * Coordinates longitude.
+//      * @type {number}
+//      */
+//     longitude: number;
+//   }
+//   export interface LatLngBoundsLiteral {
+//     /**
+//      * LatLngBoundsLiteral east.
+//      * @type {number}
+//      */
+//     east: number;
+//     /**
+//      * LatLngBoundsLiteral north.
+//      * @type {number}
+//      */
+//     north: number;
+//     /**
+//      * LatLngBoundsLiteral south.
+//      * @type {number}
+//      */
+//     south: number;
+//     /**
+//      * LatLngBoundsLiteral west.
+//      * @type {number}
+//      */
+//     west: number;
+//   }
+setCurrentPosition(){
+  if('geolocation' in navigator){
+    navigator.geolocation.getCurrentPosition((position:any)=>{
+this.latitude = position.coordinates.latitude();
+this.longitude = position.coordinates.longitude();
+this.zoom = 8;
+    })
   }
-  // https://www.google.com/maps/search/?api=1&parameters
+}
 }
